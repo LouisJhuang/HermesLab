@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TPEDC:2308 — 台達電股票看板</title>
+  <title>即時股票看板</title>
   <style>
     :root {
       --bg: #0f1115;
@@ -30,7 +30,7 @@
     }
 
     .container {
-      max-width: 900px;
+      max-width: 980px;
       margin: 0 auto;
     }
 
@@ -46,39 +46,108 @@
     .subtitle {
       color: var(--muted);
       font-size: 0.9rem;
-      margin-top: 4px;
+      margin-top: 6px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 12px;
+      align-items: end;
+      margin: 16px 0 20px;
+    }
+
+    @media (max-width: 720px) {
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .field input,
+    .field select {
+      background: var(--card);
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font: inherit;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      min-width: 160px;
+      justify-content: center;
+    }
+
+    .pill .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    .pill.ok .dot {
+      background: var(--positive);
+    }
+
+    .pill.err .dot {
+      background: var(--negative);
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 16px;
     }
 
     .card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 16px;
+      transition: transform .08s ease;
+    }
+
+    .card.loading {
+      opacity: .85;
     }
 
     .label {
       color: var(--muted);
       font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
+      letter-spacing: 0.3px;
     }
 
     .value {
       font-size: 1.9rem;
-      font-weight: 700;
+      font-weight: 800;
       margin-top: 6px;
+      word-break: break-word;
     }
 
     .delta {
-      font-size: 0.9rem;
-      margin-top: 6px;
-      font-weight: 600;
+      font-size: 0.92rem;
+      margin-top: 8px;
+      font-weight: 700;
     }
 
     .delta.up {
@@ -87,6 +156,11 @@
 
     .delta.down {
       color: var(--negative);
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 0.9rem;
     }
 
     footer {
@@ -100,47 +174,252 @@
 <body>
   <main class="container">
     <header>
-      <h1>台達電 (TPEDC:2308)</h1>
-      <p class="subtitle">靜態股票看板 — 快覽重要市場資訊</p>
+      <h1>即時股票看板</h1>
+      <p class="subtitle">免費公開端點 · 自動刷新 · 純前端實作</p>
     </header>
 
-    <section class="grid" aria-label="基本資訊">
-      <div class="card">
-        <div class="label">股票代碼</div>
-        <div class="value">2308.TPEDC</div>
+    <section class="toolbar" aria-label="控制列">
+      <div class="field">
+        <label for="symbol">股票代碼</label>
+        <input id="symbol" type="text" value="2308.TW" placeholder="例如 2330.TW、AAPL" />
       </div>
 
-      <div class="card">
-        <div class="label">最後價格</div>
-        <div class="value">335</div>
-        <div class="delta up">+4.50 ( +1.36% )</div>
+      <div class="field">
+        <label for="interval">刷新間隔</label>
+        <select id="interval">
+          <option value="10000">10 秒</option>
+          <option value="30000" selected>30 秒</option>
+          <option value="60000">60 秒</option>
+          <option value="120000">120 秒</option>
+          <option value="300000">300 秒</option>
+        </select>
       </div>
 
-      <div class="card">
-        <div class="label">開盤價</div>
-        <div class="value">330</div>
-      </div>
+      <button id="refreshNow" type="button">立即刷新</button>
 
-      <div class="card">
-        <div class="label">最高價</div>
-        <div class="value">338</div>
+      <div id="status" class="pill" title="更新狀態">
+        <span class="dot"></span>
+        <span id="statusText">初始化</span>
       </div>
+    </section>
 
-      <div class="card">
-        <div class="label">最低價</div>
-        <div class="value">329</div>
-      </div>
-
-      <div class="card">
-        <div class="label">成交量</div>
-        <div class="value">12,500</div>
-        <div class="delta">張</div>
+    <section class="grid" id="quotes" aria-label="股票資訊" aria-live="polite">
+      <div class="card loading">
+        <div class="label">狀態</div>
+        <div class="value empty">載入中…</div>
+        <div class="delta" id="loadMsg">首次取得報價中</div>
       </div>
     </section>
 
     <footer>
-      看板僅為靜態展示，請以實際券商報價為準
+      資料來源為免費公開端點，僅供快速參考，請以實際券商報價為準
     </footer>
   </main>
+
+  <script>
+    const qs = (sel, ctx = document) => ctx.querySelector(sel);
+    const qsa = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+
+    const state = {
+      symbol: '2308.TW',
+      timer: null,
+      updatedAt: null,
+    };
+
+    const $symbol = qs('#symbol');
+    const $interval = qs('#interval');
+    const $refreshNow = qs('#refreshNow');
+    const $status = qs('#status');
+    const $statusText = qs('#statusText');
+    const $quotes = qs('#quotes');
+    const $loadMsg = qs('#loadMsg');
+
+    function setStatus(kind, text) {
+      $status.classList.remove('ok', 'err');
+      if (kind) $status.classList.add(kind);
+      $statusText.textContent = text;
+    }
+
+    function storage(key, value) {
+      try {
+        if (typeof value === 'undefined') {
+          const raw = localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : null;
+        }
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (_err) {
+        // ignore private mode / storage unavailable
+      }
+    }
+
+    function symbolNormalize(sym) {
+      const raw = String(sym || '').trim();
+      if (!raw) return '2308.TW';
+      const upper = raw.toUpperCase();
+      if (/^\d{4}$/.test(upper)) return upper + '.TW';
+      return upper;
+    }
+
+    function n(n, fallback = '--') {
+      if (n === null || n === undefined || Number.isNaN(n)) return fallback;
+      if (Number.isInteger(n)) return n.toLocaleString('zh-TW');
+      return n.toLocaleString('zh-TW', { maximumFractionDigits: 2 });
+    }
+
+    function pct(n) {
+      if (n === null || n === undefined || Number.isNaN(n)) return '--';
+      const sign = n > 0 ? '+' : '';
+      return `${sign}${n.toFixed(2)}%`;
+    }
+
+    function deltaClass(n) {
+      if (n === null || n === undefined || Number.isNaN(n)) return '';
+      return n > 0 ? 'up' : n < 0 ? 'down' : '';
+    }
+
+    function timeLabel(ms) {
+      if (!ms) return '--';
+      const d = new Date(ms);
+      const pad = (v) => String(v).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
+    function card(label, valueHtml, extraHtml = '', isLoading = false) {
+      const cardEl = document.createElement('div');
+      cardEl.className = 'card' + (isLoading ? ' loading' : '');
+      cardEl.innerHTML = `
+        <div class="label">${label}</div>
+        <div class="value" id="${label}-value">${valueHtml}</div>
+        ${extraHtml ? `<div class="delta">${extraHtml}</div>` : ''}
+      `;
+      return cardEl;
+    }
+
+    function renderError(err) {
+      qsa('.card', $quotes).forEach(el => el.remove());
+      const label = document.createElement('div');
+      label.className = 'label';
+      label.textContent = '錯誤';
+      const value = document.createElement('div');
+      value.className = 'value empty';
+      value.textContent = err.message || '讀取失敗';
+      const delta = document.createElement('div');
+      delta.className = 'delta';
+      delta.textContent = '請稍後再試，或檢查網路/資料來源';
+      const wrap = document.createElement('div');
+      wrap.className = 'card';
+      wrap.appendChild(label);
+      wrap.appendChild(value);
+      wrap.appendChild(delta);
+      $quotes.appendChild(wrap);
+    }
+
+    function render(data) {
+      qsa('.card', $quotes).forEach(el => el.remove());
+      const q = data?.quoteResponse?.result?.[0];
+      if (!q) {
+        renderError(new Error('找不到報價結果'));
+        return;
+      }
+
+      const price = q.regularMarketPrice ?? q.previousClose ?? null;
+      const change = q.regularMarketChange ?? null;
+      const changePct = q.regularMarketChangePercent ?? null;
+      const prev = q.previousClose ?? null;
+      const open = q.regularMarketOpen ?? null;
+      const high = q.regularMarketDayHigh ?? q.regularMarketHigh ?? null;
+      const low = q.regularMarketDayLow ?? q.regularMarketLow ?? null;
+      const volume = q.regularMarketVolume ?? null;
+      const time = q.regularMarketTime ? q.regularMarketTime * 1000 : null;
+
+      $quotes.appendChild(card('股票代碼', data.symbol || state.symbol, '', false));
+      $quotes.appendChild(card('最後價格', n(price, '--'), changeHtml(change, changePct), false));
+      if (open !== null) $quotes.appendChild(card('開盤價', n(open), '', false));
+      if (high !== null) $quotes.appendChild(card('最高價', n(high), '', false));
+      if (low !== null) $quotes.appendChild(card('最低價', n(low), '', false));
+      if (volume !== null) $quotes.appendChild(card('成交量', n(volume) + ' 張', '', false));
+      if (time) {
+        $quotes.appendChild(card('報價時間', timeLabel(time), '', false));
+      }
+
+      const updatedLabel = document.createElement('div');
+      updatedLabel.className = 'card';
+      updatedLabel.innerHTML = `<div class="label">最後更新</div><div class="value empty">${timeLabel(time)}</div>`;
+      $quotes.appendChild(updatedLabel);
+    }
+
+    function changeHtml(raw, pctVal) {
+      if (raw === null || raw === undefined || Number.isNaN(raw) || pctVal === null || Number.isNaN(pctVal)) return '--';
+      const cls = deltaClass(pctVal);
+      return `<span class="delta ${cls}" aria-label="${pct(pctVal)}">${raw >= 0 ? '+' : ''}${n(raw)} ( ${pct(pctVal)} )</span>`;
+    }
+
+    async function fetchStock(symbol) {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=2d&lang=zh-Hant-TW&region=TW`;
+      const res = await fetch(url, { mode: 'cors' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      const text = await res.text();
+      return JSON.parse(text);
+    }
+
+    async function load(symbol) {
+      state.symbol = symbolNormalize(symbol);
+      $quotes.innerHTML = '<div class="card loading"><div class="value empty">載入中…</div></div>';
+      setStatus('', '更新中');
+      try {
+        const data = await fetchStock(state.symbol);
+        render(data);
+        state.updatedAt = Date.now();
+        setStatus('ok', `已更新 ${timeLabel(state.updatedAt).split(' ')[1]}`);
+      } catch (err) {
+        console.error(err);
+        setStatus('err', '更新失敗');
+        renderError(err instanceof Error ? err : new Error(String(err)));
+      }
+    }
+
+    async function refresh() {
+      await load($symbol.value);
+    }
+
+    function schedule(ms) {
+      if (state.timer) clearInterval(state.timer);
+      state.timer = setInterval(refresh, ms);
+    }
+
+    function bind() {
+      $symbol.value = storage('symbol') || '2308.TW';
+      const savedInterval = storage('interval');
+      if (savedInterval && [...$interval.options].some(o => Number(o.value) === Number(savedInterval))) {
+        $interval.value = String(savedInterval);
+      }
+
+      const next = async () => {
+        storage('symbol', $symbol.value);
+        if (state.timer) clearInterval(state.timer);
+        schedule(Number($interval.value));
+        const sym = symbolNormalize($symbol.value);
+        storage('symbol', sym);
+        await refresh();
+      };
+
+      $symbol.addEventListener('change', next);
+      $symbol.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') next();
+      });
+      $interval.addEventListener('change', () => {
+        storage('interval', Number($interval.value));
+        schedule(Number($interval.value));
+      });
+      $refreshNow.addEventListener('click', () => refresh());
+
+      const sym = symbolNormalize($symbol.value);
+      storage('symbol', sym);
+      schedule(Number($interval.value));
+      refresh();
+    }
+
+    bind();
+  </script>
 </body>
 </html>
