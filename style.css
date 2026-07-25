@@ -1,0 +1,78 @@
+:root {
+  --bg: #f6f8fa;
+  --text: #1a1d23;
+  --subtle: #5a6270;
+  --muted: #9ca3af;
+  --line: #dde2e8;
+  --accent: #2563eb;
+  --accent-2: #0ea5e9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.55;
+}
+
+.masthead {
+  padding: 2.25rem 1rem 1.5rem;
+  text-align: center;
+}
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin-top: 0.35rem;
+  color: var(--subtle);
+  font-size: 0.95rem;
+}
+
+.container {
+  padding: 1rem 1rem 3.5rem;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+}
+
+.placeholder {
+  color: var(--subtle);
+  margin: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0f14;
+    --text: #e6e8ee;
+    --subtle: #b8c0cc;
+    --muted: #7a8697;
+    --line: #1c2430;
+    --accent: #60a5fa;
+    --accent-2: #22d3ee;
+  }
+
+  .card {
+    background: #0f131a;
+  }
+}

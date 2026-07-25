@@ -1,0 +1,12 @@
+[build]
+  publish = "."
+  functions = "."
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Dev server via `netlify dev`
+[dev]
+  command = ""
+  port = 8888
+  publish = "."
