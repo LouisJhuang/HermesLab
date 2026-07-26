@@ -1,27 +1,248 @@
 /*
-  Placeholder stylesheet for the TPE:2308 stock dashboard.
-  A follow-up styling task can layer visual design on these semantic ids/classes.
+  Visual design for the TPE:2308 stock dashboard.
+  Taiwan market convention used consistently here: red = up, green = down.
 */
 
 :root {
-  color-scheme: light dark;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color-scheme: light;
+  --bg: #eef4f8;
+  --bg-deep: #dceaf2;
+  --surface: rgba(255, 255, 255, 0.88);
+  --surface-strong: #ffffff;
+  --surface-muted: rgba(255, 255, 255, 0.62);
+  --border: rgba(20, 43, 65, 0.11);
+  --border-strong: rgba(20, 43, 65, 0.18);
+  --text: #172638;
+  --text-soft: #536579;
+  --text-muted: #7c8b9a;
+  --brand: #0f4c81;
+  --brand-strong: #103d66;
+  --brand-soft: #e8f2fb;
+  --accent: #21a5b8;
+  --up: #d92332;
+  --up-bg: #fff0f2;
+  --down: #118050;
+  --down-bg: #edf9f2;
+  --warning: #b36b00;
+  --warning-bg: #fff7e6;
+  --shadow-sm: 0 10px 30px rgba(16, 39, 66, 0.08);
+  --shadow-md: 0 20px 60px rgba(16, 39, 66, 0.14);
+  --radius-lg: 28px;
+  --radius-md: 20px;
+  --radius-sm: 14px;
+  --container: 1080px;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, rgba(33, 165, 184, 0.26), transparent 34rem),
+    radial-gradient(circle at 85% 12%, rgba(15, 76, 129, 0.18), transparent 28rem),
+    linear-gradient(135deg, var(--bg), var(--bg-deep));
 }
 
 body {
+  min-height: 100vh;
   margin: 0;
-  padding: 2rem;
-  line-height: 1.5;
+  padding: clamp(1rem, 3vw, 2rem);
+  color: var(--text);
+  line-height: 1.55;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  background-image:
+    linear-gradient(rgba(15, 76, 129, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 76, 129, 0.035) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, black, transparent 82%);
 }
 
 .site-header,
-.dashboard,
+main,
 .site-footer {
-  max-width: 960px;
+  width: min(100%, var(--container));
   margin-inline: auto;
 }
 
-.dashboard-heading,
+.site-header {
+  position: relative;
+  overflow: hidden;
+  margin-block: clamp(0.5rem, 2vw, 1.25rem) clamp(1rem, 3vw, 2rem);
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(235, 246, 251, 0.78)),
+    radial-gradient(circle at 90% 10%, rgba(33, 165, 184, 0.18), transparent 20rem);
+  box-shadow: var(--shadow-sm);
+}
+
+.site-header::after {
+  position: absolute;
+  right: -4rem;
+  bottom: -5rem;
+  width: 16rem;
+  height: 16rem;
+  content: "";
+  border: 2.5rem solid rgba(15, 76, 129, 0.08);
+  border-radius: 999px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.eyebrow::before {
+  width: 0.65rem;
+  height: 0.65rem;
+  content: "";
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent), var(--brand));
+  box-shadow: 0 0 0 0.35rem rgba(33, 165, 184, 0.12);
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  max-width: 760px;
+  margin-bottom: 0.85rem;
+  color: var(--brand-strong);
+  font-size: clamp(2rem, 5vw, 4.25rem);
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+}
+
+.ticker {
+  display: inline-flex;
+  width: fit-content;
+  margin: 0;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid rgba(15, 76, 129, 0.14);
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-weight: 800;
+  letter-spacing: 0.035em;
+}
+
+.dashboard {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(18px);
+}
+
+.dashboard::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 0.38rem;
+  content: "";
+  background: linear-gradient(90deg, var(--brand), var(--accent), #7ad4c5);
+}
+
+.dashboard-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.dashboard-heading h2 {
+  margin-bottom: 0.3rem;
+  color: var(--brand-strong);
+  font-size: clamp(1.4rem, 3vw, 2.15rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.muted,
+.metric-note,
+.site-footer {
+  color: var(--text-muted);
+}
+
+.muted {
+  margin-bottom: 0;
+  font-size: 0.94rem;
+}
+
+.refresh-button {
+  min-height: 2.75rem;
+  padding: 0.65rem 1.1rem;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--brand), var(--accent));
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  box-shadow: 0 12px 24px rgba(15, 76, 129, 0.2);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
+}
+
+.refresh-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(15, 76, 129, 0.25);
+}
+
+.refresh-button:focus-visible {
+  outline: 3px solid rgba(33, 165, 184, 0.35);
+  outline-offset: 3px;
+}
+
+.refresh-button:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.status-message {
+  margin-block: 1rem 1.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(15, 76, 129, 0.12);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, rgba(15, 76, 129, 0.08), rgba(33, 165, 184, 0.08));
+  color: var(--brand-strong);
+  font-weight: 700;
+}
+
+.status-message.is-warning {
+  border-color: rgba(179, 107, 0, 0.22);
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
 .quote-summary,
 .metric-grid,
 .company-details dl {
@@ -29,55 +250,246 @@ body {
   gap: 1rem;
 }
 
-.dashboard-heading {
-  grid-template-columns: 1fr auto;
-  align-items: start;
+.quote-summary {
+  grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.9fr);
+  margin-bottom: 1rem;
 }
 
-.quote-summary,
 .metric-grid {
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 1rem;
 }
 
 .price-card,
 .metric-card,
 .company-details {
-  border: 1px solid currentColor;
-  border-radius: 0.75rem;
-  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow-sm);
 }
 
-.metric-label,
-.muted,
-.eyebrow,
-.site-footer {
-  opacity: 0.72;
+.price-card,
+.metric-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 9rem;
+  padding: clamp(1rem, 2.6vw, 1.45rem);
+}
+
+.price-card::after,
+.metric-card::after {
+  position: absolute;
+  inset: auto 1rem 1rem auto;
+  width: 3.1rem;
+  height: 3.1rem;
+  content: "";
+  border-radius: 1.1rem;
+  background: linear-gradient(135deg, rgba(15, 76, 129, 0.08), rgba(33, 165, 184, 0.12));
+  transform: rotate(12deg);
+}
+
+.primary-card {
+  min-height: 12rem;
+  background:
+    linear-gradient(135deg, #123a60, #0f4c81 56%, #168ba0),
+    var(--brand);
+  color: #fff;
+}
+
+.primary-card::after {
+  width: 7rem;
+  height: 7rem;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.metric-label {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.primary-card .metric-label,
+.primary-card .metric-unit {
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .metric-value {
+  position: relative;
+  z-index: 1;
   display: block;
-  font-size: clamp(1.5rem, 4vw, 2.75rem);
+  color: var(--text);
+  font-size: clamp(1.75rem, 4vw, 3.3rem);
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: -0.045em;
 }
 
-.status-message {
-  margin-block: 1rem;
+.metric-card .metric-value {
+  font-size: clamp(1.45rem, 2.5vw, 2.25rem);
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
 }
 
-.is-up {
-  color: #0f8a3b;
+.primary-card .metric-value {
+  color: #fff;
+  font-size: clamp(2.4rem, 7vw, 5.4rem);
+  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
-.is-down,
-.is-warning {
-  color: #b42318;
+.metric-unit,
+.metric-note {
+  position: relative;
+  z-index: 1;
+  display: block;
+  margin-top: 0.5rem;
+  font-weight: 800;
+}
+
+#change-card {
+  border-width: 2px;
+}
+
+#change-card.is-up {
+  border-color: rgba(217, 35, 50, 0.3);
+  background: linear-gradient(135deg, #fff, var(--up-bg));
+}
+
+#change-card.is-down {
+  border-color: rgba(17, 128, 80, 0.3);
+  background: linear-gradient(135deg, #fff, var(--down-bg));
+}
+
+#change-card.is-flat {
+  border-color: var(--border-strong);
+  background: linear-gradient(135deg, #fff, #f6f9fb);
+}
+
+.is-up .metric-value,
+.is-up .metric-note {
+  color: var(--up);
+}
+
+.is-down .metric-value,
+.is-down .metric-note {
+  color: var(--down);
+}
+
+.is-flat .metric-value,
+.is-flat .metric-note {
+  color: var(--text-soft);
+}
+
+.company-details {
+  padding: clamp(1rem, 2.6vw, 1.35rem);
+  background: linear-gradient(135deg, var(--surface-strong), var(--surface-muted));
+}
+
+.company-details dl {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+
+.company-details div {
+  min-width: 0;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(15, 76, 129, 0.08);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.company-details dt {
+  margin-bottom: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.company-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-weight: 750;
+}
+
+.site-footer {
+  padding-block: 1.25rem 0.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.site-footer p {
+  margin-bottom: 0;
+}
+
+@media (max-width: 860px) {
+  .quote-summary,
+  .metric-grid,
+  .company-details dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
   body {
+    padding: 0.85rem;
+  }
+
+  .site-header,
+  .dashboard {
+    border-radius: 22px;
+  }
+
+  .site-header {
+    padding: 1.35rem;
+  }
+
+  .dashboard {
     padding: 1rem;
   }
 
-  .dashboard-heading {
+  .dashboard-heading,
+  .quote-summary,
+  .metric-grid,
+  .company-details dl {
     grid-template-columns: 1fr;
+  }
+
+  .refresh-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .price-card,
+  .metric-card {
+    min-height: 7.6rem;
+  }
+
+  .primary-card {
+    min-height: 10rem;
+  }
+
+  .metric-value {
+    font-size: clamp(1.65rem, 12vw, 2.55rem);
+  }
+
+  .primary-card .metric-value {
+    font-size: clamp(2.35rem, 17vw, 4rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
