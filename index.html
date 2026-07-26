@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>即時股票看板</title>
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --surface: #181d25;
+      --surface-2: #1f2530;
+      --border: #272c36;
+      --border-subtle: #1e232a;
+      --fg: #e6edf3;
+      --fg-secondary: #c9d1d9;
+      --muted: #8b949e;
+      --accent: #2f81f7;
+      --accent-2: #388bfd33;
+      --positive: #3fb950;
+      --negative: #f85149;
+      --shadow: 0 14px 30px rgba(0, 0, 0, .35);
+      --radius: 14px;
+      --radius-sm: 10px;
+      --max-width: 1100px;
+      --gap: 14px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #1b375acc, transparent),
+        radial-gradient(1200px 600px at 100% 0%, #12335f55, transparent),
+        var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      padding: 22px;
+      min-height: 100dvh;
+    }
+
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
+
+    header {
+      margin: 10px 2px 22px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      line-height: 1.25;
+      letter-spacing: 0.6px;
+      background: linear-gradient(180deg, #ffffffcc, #ffffff88);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-top: 8px;
+      letter-spacing: 0.3px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1.1fr repeat(2, auto) auto;
+      gap: var(--gap);
+      align-items: end;
+      margin: 18px 0 18px;
+      padding: 14px;
+      background: linear-gradient(180deg, #141820, #14182099);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(4px);
+    }
+
+    @media (max-width: 820px) {
+      body { padding: 14px; }
+      .toolbar {
+        grid-template-columns: 1fr 1fr;
+      }
+      .toolbar :nth-child(1) { grid-column: 1 / -1; }
+      .toolbar :nth-child(2) { grid-column: 1; }
+      .toolbar :nth-child(3) { grid-column: 1; }
+      .toolbar :nth-child(4) { grid-column: 1 / -1; justify-self: start; }
+    }
+
+    @media (max-width: 420px) {
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+      .toolbar > * { grid-column: 1 / -1; }
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    .field input,
+    .field select {
+      background: var(--surface);
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 11px 14px;
+      font: inherit;
+      min-width: 0;
+      outline: none;
+      transition: .15s border-color, .15s box-shadow, .15s background;
+    }
+
+    .field input::placeholder {
+      color: var(--muted);
+      opacity: .85;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: #ffffff30;
+      box-shadow: 0 0 0 4px var(--accent-2);
+      background: #1a2030;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 0.84rem;
+      color: var(--muted);
+      min-width: 170px;
+      justify-content: center;
+      user-select: none;
+      white-space: nowrap;
+      transition: .2s border-color, .2s color;
+    }
+
+    .pill .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--muted);
+      box-shadow: 0 0 0 3px transparent;
+      transition: .3s background, .3s box-shadow;
+    }
+
+    .pill.ok {
+      color: #ccf1cc;
+      border-color: #3fb95066;
+    }
+    .pill.ok .dot {
+      background: var(--positive);
+      box-shadow: 0 0 0 6px #3fb95025;
+    }
+
+    .pill.err {
+      color: #ffcccc;
+      border-color: #f8514966;
+    }
+    .pill.err .dot {
+      background: var(--negative);
+      box-shadow: 0 0 0 6px #f8514925;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--gap);
+    }
+
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 520px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background:
+        linear-gradient(180deg, #ffffff05, transparent),
+        var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      transition: transform .15s ease, .15s box-shadow, .15s border-color;
+      box-shadow: 0 2px 0 #00000008;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: #ffffff18;
+      box-shadow: 0 18px 28px rgba(0, 0, 0, .55);
+    }
+
+    .card.loading {
+      opacity: .95;
+      animation: breathe 2s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0% { box-shadow: 0 0 0 0px #2f81f700, 0 2px 0 #00000008; }
+      50% { box-shadow: 0 0 0 10px #2f81f7111, 0 2px 0 #00000008; }
+      100% { box-shadow: 0 0 0 0px #2f81f700, 0 2px 0 #00000008; }
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 0.78rem;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    .value {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-top: 10px;
+      word-break: break-word;
+      line-height: 1.1;
+    }
+
+    .delta {
+      font-size: 0.95rem;
+      margin-top: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .delta.up {
+      color: var(--positive);
+    }
+
+    .delta.down {
+      color: var(--negative);
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    button[type="button"]#refreshNow {
+      appearance: none;
+      background: linear-gradient(180deg, #ffffff14, #ffffff08);
+      color: #ccd9ffff;
+      border: 1px solid #ffffff1a;
+      border-radius: var(--radius-sm);
+      padding: 11px 14px;
+      font: inherit;
+      font-weight: 650;
+      letter-spacing: .4px;
+      cursor: pointer;
+      min-height: 44px;
+      transition: .15s border-color, .15s box-shadow, .15s background, .15s transform;
+    }
+
+    button[type="button"]#refreshNow:hover {
+      border-color: #ffffff33;
+      background: linear-gradient(180deg, #ffffff1a, #ffffff0f);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px #00000050;
+    }
+
+    button[type="button"]#refreshNow:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 0 #ffffff08;
+    }
+
+    footer {
+      margin-top: 26px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-align: right;
+      letter-spacing: 0.3px;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>即時股票看板</h1>
+      <p class="subtitle">免費公開端點 · 自動刷新 · 純前端實作</p>
+    </header>
+
+    <section class="toolbar" aria-label="控制列">
+      <div class="field">
+        <label for="symbol">股票代碼</label>
+        <input id="symbol" type="text" value="2308.TW" placeholder="例如 2330.TW、AAPL" />
+      </div>
+
+      <div class="field">
+        <label for="interval">刷新間隔</label>
+        <select id="interval">
+          <option value="10000">10 秒</option>
+          <option value="30000" selected>30 秒</option>
+          <option value="60000">60 秒</option>
+          <option value="120000">120 秒</option>
+          <option value="300000">300 秒</option>
+        </select>
+      </div>
+
+      <button id="refreshNow" type="button">立即刷新</button>
+
+      <div id="status" class="pill" title="更新狀態">
+        <span class="dot"></span>
+        <span id="statusText">初始化</span>
+      </div>
+    </section>
+
+    <section class="grid" id="quotes" aria-label="股票資訊" aria-live="polite">
+      <div class="card loading">
+        <div class="label">狀態</div>
+        <div class="value empty">載入中…</div>
+        <div class="delta" id="loadMsg">首次取得報價中</div>
+      </div>
+    </section>
+
+    <footer>
+      資料來源為免費公開端點，僅供快速參考，請以實際券商報價為準
+    </footer>
+  </main>
+
+  <script>
+    const qs = (sel, ctx = document) => ctx.querySelector(sel);
+    const qsa = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+
+    const state = {
+      symbol: '2308.TW',
+      timer: null,
+      updatedAt: null,
+    };
+
+    const $symbol = qs('#symbol');
+    const $interval = qs('#interval');
+    const $refreshNow = qs('#refreshNow');
+    const $status = qs('#status');
+    const $statusText = qs('#statusText');
+    const $quotes = qs('#quotes');
+    const $loadMsg = qs('#loadMsg');
+
+    function setStatus(kind, text) {
+      $status.classList.remove('ok', 'err');
+      if (kind) $status.classList.add(kind);
+      $statusText.textContent = text;
+    }
+
+    function storage(key, value) {
+      try {
+        if (typeof value === 'undefined') {
+          const raw = localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : null;
+        }
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (_err) {
+        // ignore private mode / storage unavailable
+      }
+    }
+
+    function symbolNormalize(sym) {
+      const raw = String(sym || '').trim();
+      if (!raw) return '2308.TW';
+      const upper = raw.toUpperCase();
+      if (/^\d{4}$/.test(upper)) return upper + '.TW';
+      return upper;
+    }
+
+    function n(n, fallback = '--') {
+      if (n === null || n === undefined || Number.isNaN(n)) return fallback;
+      if (Number.isInteger(n)) return n.toLocaleString('zh-TW');
+      return n.toLocaleString('zh-TW', { maximumFractionDigits: 2 });
+    }
+
+    function pct(n) {
+      if (n === null || n === undefined || Number.isNaN(n)) return '--';
+      const sign = n > 0 ? '+' : '';
+      return `${sign}${n.toFixed(2)}%`;
+    }
+
+    function deltaClass(n) {
+      if (n === null || n === undefined || Number.isNaN(n)) return '';
+      return n > 0 ? 'up' : n < 0 ? 'down' : '';
+    }
+
+    function timeLabel(ms) {
+      if (!ms) return '--';
+      const d = new Date(ms);
+      const pad = (v) => String(v).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
+    function card(label, valueHtml, extraHtml = '', isLoading = false) {
+      const cardEl = document.createElement('div');
+      cardEl.className = 'card' + (isLoading ? ' loading' : '');
+      cardEl.innerHTML = `
+        <div class="label">${label}</div>
+        <div class="value" id="${label}-value">${valueHtml}</div>
+        ${extraHtml ? `<div class="delta">${extraHtml}</div>` : ''}
+      `;
+      return cardEl;
+    }
+
+    function renderError(err) {
+      qsa('.card', $quotes).forEach(el => el.remove());
+      const label = document.createElement('div');
+      label.className = 'label';
+      label.textContent = '錯誤';
+      const value = document.createElement('div');
+      value.className = 'value empty';
+      value.textContent = err.message || '讀取失敗';
+      const delta = document.createElement('div');
+      delta.className = 'delta';
+      delta.textContent = '請稍後再試，或檢查網路/資料來源';
+      const wrap = document.createElement('div');
+      wrap.className = 'card';
+      wrap.appendChild(label);
+      wrap.appendChild(value);
+      wrap.appendChild(delta);
+      $quotes.appendChild(wrap);
+    }
+
+    function render(data) {
+      qsa('.card', $quotes).forEach(el => el.remove());
+      const q = data?.quoteResponse?.result?.[0];
+      if (!q) {
+        renderError(new Error('找不到報價結果'));
+        return;
+      }
+
+      const price = q.regularMarketPrice ?? q.previousClose ?? null;
+      const change = q.regularMarketChange ?? null;
+      const changePct = q.regularMarketChangePercent ?? null;
+      const prev = q.previousClose ?? null;
+      const open = q.regularMarketOpen ?? null;
+      const high = q.regularMarketDayHigh ?? q.regularMarketHigh ?? null;
+      const low = q.regularMarketDayLow ?? q.regularMarketLow ?? null;
+      const volume = q.regularMarketVolume ?? null;
+      const time = q.regularMarketTime ? q.regularMarketTime * 1000 : null;
+
+      $quotes.appendChild(card('股票代碼', data.symbol || state.symbol, '', false));
+      $quotes.appendChild(card('最後價格', n(price, '--'), changeHtml(change, changePct), false));
+      if (open !== null) $quotes.appendChild(card('開盤價', n(open), '', false));
+      if (high !== null) $quotes.appendChild(card('最高價', n(high), '', false));
+      if (low !== null) $quotes.appendChild(card('最低價', n(low), '', false));
+      if (volume !== null) $quotes.appendChild(card('成交量', n(volume) + ' 張', '', false));
+      if (time) {
+        $quotes.appendChild(card('報價時間', timeLabel(time), '', false));
+      }
+
+      const updatedLabel = document.createElement('div');
+      updatedLabel.className = 'card';
+      updatedLabel.innerHTML = `<div class="label">最後更新</div><div class="value empty">${timeLabel(time)}</div>`;
+      $quotes.appendChild(updatedLabel);
+    }
+
+    function changeHtml(raw, pctVal) {
+      if (raw === null || raw === undefined || Number.isNaN(raw) || pctVal === null || Number.isNaN(pctVal)) return '--';
+      const cls = deltaClass(pctVal);
+      return `<span class="delta ${cls}" aria-label="${pct(pctVal)}">${raw >= 0 ? '+' : ''}${n(raw)} ( ${pct(pctVal)} )</span>`;
+    }
+
+    async function fetchStock(symbol) {
+      const sym = symbolNormalize(symbol);
+      const q1 = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=2d&lang=zh-Hant-TW&region=TW`;
+      const q2 = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=2d&lang=zh-Hant-TW&region=TW`;
+      let lastErr;
+      for (const url of [q1, q2]) {
+        try {
+          const res = await fetch(url, { mode: 'cors' });
+          if (res.status === 429) {
+            lastErr = new Error('資料來源暫時限制請求 (429)，正在嘗試備援來源...');
+            continue;
+          }
+          if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+          const text = await res.text();
+          return JSON.parse(text);
+        } catch (err) {
+          lastErr = err instanceof Error ? err : new Error(String(err));
+        }
+      }
+
+      if (/^\d{4}(?:\.TW)?$/i.test(sym)) {
+        const ch = sym.replace(/^(\d{4}).*$/, '$1.tw');
+        const twUrl = `https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${ch}&json=1&delay=0`;
+        try {
+          const res = await fetch(twUrl, { mode: 'cors' });
+          if (res.ok) {
+            const text = await res.text();
+            const data = JSON.parse(text);
+            const row = data?.msgArray?.[0];
+            if (row) {
+              return {
+                chart: {
+                  result: [
+                    {
+                      meta: {
+                        symbol: sym,
+                        regularMarketPrice: Number(row.z || row.pz || 'NaN'),
+                        previousClose: Number(row.y || 'NaN'),
+                        regularMarketOpen: Number(row.o || 'NaN'),
+                        regularMarketDayHigh: Number(row.h || 'NaN'),
+                        regularMarketDayLow: Number(row.l || 'NaN'),
+                        regularMarketVolume: Number(row.v || 'NaN'),
+                        regularMarketTime: Number(row.tlong || 0) || Date.now(),
+                      },
+                    },
+                  ],
+                  error: null,
+                },
+              };
+            }
+          }
+        } catch (_) {
+          // fall through to lastErr
+        }
+      }
+
+      throw lastErr || new Error('讀取失敗');
+    }
+
+    async function load(symbol) {
+      state.symbol = symbolNormalize(symbol);
+      $quotes.innerHTML = '<div class="card loading"><div class="value empty">載入中…</div></div>';
+      setStatus('', '更新中');
+      try {
+        const data = await fetchStock(state.symbol);
+        render(data);
+        state.updatedAt = Date.now();
+        setStatus('ok', `已更新 ${timeLabel(state.updatedAt).split(' ')[1]}`);
+      } catch (err) {
+        console.error(err);
+        setStatus('err', '更新失敗');
+        renderError(err instanceof Error ? err : new Error(String(err)));
+      }
+    }
+
+    async function refresh() {
+      await load($symbol.value);
+    }
+
+    function schedule(ms) {
+      if (state.timer) clearInterval(state.timer);
+      state.timer = setInterval(refresh, ms);
+    }
+
+    function bind() {
+      $symbol.value = storage('symbol') || '2308.TW';
+      const savedInterval = storage('interval');
+      if (savedInterval && [...$interval.options].some(o => Number(o.value) === Number(savedInterval))) {
+        $interval.value = String(savedInterval);
+      }
+
+      const next = async () => {
+        storage('symbol', $symbol.value);
+        if (state.timer) clearInterval(state.timer);
+        schedule(Number($interval.value));
+        const sym = symbolNormalize($symbol.value);
+        storage('symbol', sym);
+        await refresh();
+      };
+
+      $symbol.addEventListener('change', next);
+      $symbol.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') next();
+      });
+      $interval.addEventListener('change', () => {
+        storage('interval', Number($interval.value));
+        schedule(Number($interval.value));
+      });
+      $refreshNow.addEventListener('click', () => refresh());
+
+      const sym = symbolNormalize($symbol.value);
+      storage('symbol', sym);
+      schedule(Number($interval.value));
+      refresh();
+    }
+
+    bind();
+  </script>
+</body>
+</html>
