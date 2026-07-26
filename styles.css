@@ -1,0 +1,83 @@
+/*
+  Placeholder stylesheet for the TPE:2308 stock dashboard.
+  A follow-up styling task can layer visual design on these semantic ids/classes.
+*/
+
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 2rem;
+  line-height: 1.5;
+}
+
+.site-header,
+.dashboard,
+.site-footer {
+  max-width: 960px;
+  margin-inline: auto;
+}
+
+.dashboard-heading,
+.quote-summary,
+.metric-grid,
+.company-details dl {
+  display: grid;
+  gap: 1rem;
+}
+
+.dashboard-heading {
+  grid-template-columns: 1fr auto;
+  align-items: start;
+}
+
+.quote-summary,
+.metric-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.price-card,
+.metric-card,
+.company-details {
+  border: 1px solid currentColor;
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.metric-label,
+.muted,
+.eyebrow,
+.site-footer {
+  opacity: 0.72;
+}
+
+.metric-value {
+  display: block;
+  font-size: clamp(1.5rem, 4vw, 2.75rem);
+}
+
+.status-message {
+  margin-block: 1rem;
+}
+
+.is-up {
+  color: #0f8a3b;
+}
+
+.is-down,
+.is-warning {
+  color: #b42318;
+}
+
+@media (max-width: 640px) {
+  body {
+    padding: 1rem;
+  }
+
+  .dashboard-heading {
+    grid-template-columns: 1fr;
+  }
+}

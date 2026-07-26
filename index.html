@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>台達電子 Delta Electronics 股票資訊儀表板</title>
+    <meta
+      name="description"
+      content="台達電子 Delta Electronics（TPE:2308）靜態股票資訊儀表板，顯示最新價格、漲跌、開高低與成交量。"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <p class="eyebrow">Taiwan Stock Dashboard</p>
+      <h1 id="company-name">台達電子工業股份有限公司 / Delta Electronics, Inc.</h1>
+      <p class="ticker" aria-label="股票代號">TPE:2308 · 2308.TW</p>
+    </header>
+
+    <main>
+      <section id="stock-dashboard" class="dashboard" aria-labelledby="dashboard-title">
+        <div class="dashboard-heading">
+          <div>
+            <h2 id="dashboard-title">台達電子即時報價</h2>
+            <p id="data-source" class="muted">資料載入中…</p>
+          </div>
+          <button id="refresh-button" class="refresh-button" type="button">重新整理</button>
+        </div>
+
+        <div id="status-message" class="status-message" role="status" aria-live="polite">
+          正在取得 TPE:2308 股票資料…
+        </div>
+
+        <section class="quote-summary" aria-label="主要報價">
+          <article class="price-card primary-card">
+            <span class="metric-label">目前 / 最後成交價</span>
+            <strong id="last-price" class="metric-value">--</strong>
+            <span class="metric-unit">TWD</span>
+          </article>
+
+          <article class="price-card" id="change-card">
+            <span class="metric-label">日漲跌</span>
+            <strong id="daily-change" class="metric-value">--</strong>
+            <span id="daily-change-percent" class="metric-note">--</span>
+          </article>
+        </section>
+
+        <section class="metric-grid" aria-label="交易明細">
+          <article class="metric-card">
+            <span class="metric-label">開盤價</span>
+            <strong id="open-price" class="metric-value">--</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">最高價</span>
+            <strong id="high-price" class="metric-value">--</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">最低價</span>
+            <strong id="low-price" class="metric-value">--</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">成交量</span>
+            <strong id="volume" class="metric-value">--</strong>
+          </article>
+        </section>
+
+        <section class="company-details" aria-label="公司資訊">
+          <dl>
+            <div>
+              <dt>公司名稱</dt>
+              <dd id="detail-company">台達電子工業股份有限公司 / Delta Electronics, Inc.</dd>
+            </div>
+            <div>
+              <dt>股票代號</dt>
+              <dd id="detail-ticker">TPE:2308 / 2308.TW</dd>
+            </div>
+            <div>
+              <dt>更新時間</dt>
+              <dd id="updated-at">--</dd>
+            </div>
+          </dl>
+        </section>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        本頁為靜態 HTML；優先從 Yahoo Finance 公開端點於瀏覽器端取得 2308.TW 報價，若失敗則顯示內建快照資料。
+      </p>
+    </footer>
+
+    <script src="stock-dashboard.js" defer></script>
+  </body>
+</html>
